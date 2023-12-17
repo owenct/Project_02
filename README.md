@@ -1,7 +1,7 @@
 ## Project_2
 
 
-# Trading Strategy README
+# Machine Learning Trading Strategy
 
 This repository contains the code for implementing a trading strategy using historical market data. The strategy involves generating buy/sell signals based on moving average features and evaluating the performance using machine learning models.
 
