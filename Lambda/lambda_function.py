@@ -1,4 +1,5 @@
 ### Required Libraries ###
+import json
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -40,7 +41,7 @@ def close(session_attributes, fulfillment_state, message):
     }
 
     return response
-
+    
 ### Business Login Function ###
 def calculate_portfolio_metrics(stock_ticker, short_window=20, long_window=100, initial_capital=100000, share_size=500):
     # Data Preparation
@@ -90,7 +91,7 @@ def calculate_portfolio_metrics(stock_ticker, short_window=20, long_window=100, 
 
     portfolio_evaluation_df.loc["Sortino Ratio"] = sortino_ratio
 
-    return signals_df, portfolio_evaluation_df
+    return signals_df, portfolio_evaluation_df  
 
 ### Intents Handlers ###
 
@@ -153,78 +154,105 @@ def get_market_trends(intent_request):
     )
 
 def get_stock_performance(intent_request):
-    # Gets slots' values
-    stock_name = get_slots(intent_request)["stock_ticker"]
-    short_window = get_slots(intent_request)["short_window"] 
-    long_window = get_slots(intent_request)["long_window"] 
-    initial_capital = get_slots(intent_request)["initial_capital"] 
-    share_size = get_slots(intent_request)["share_size"]
-
-    # Retrieve stock data and calculate portfolio metrics
     try:
+        # Extract slot values
+        slots = get_slots(intent_request)
+        stock_name = slots["stock_ticker"]
+        short_window = slots["short_window"]
+        long_window = slots["long_window"]
+        initial_capital = slots["initial_capital"]
+        share_size = slots["share_size"]
+
+        # Retrieve stock data and calculate portfolio metrics
         stock_data, portfolio_metrics = calculate_portfolio_metrics(stock_name, short_window, long_window, initial_capital, share_size)
+        
+        # Format the results as a JSON response
+        response_body = format_response_body(stock_name, portfolio_metrics)
+
+        # Return the formatted result
+        return create_successful_response(intent_request, response_body)
+
     except Exception as e:
-        # Handle any exceptions (e.g., invalid stock symbol)
-        return close(
-            intent_request["sessionAttributes"],
-            "Failed",
-            {
-                "contentType": "PlainText",
-                "content": f"Error: {str(e)}",
-            },
-        )
+        # Handle errors, such as invalid stock symbol or network issues
+        error_message = f"An error occurred while fetching stock performance: {str(e)}"
+        return create_error_response(intent_request, error_message)
 
-    # Format the result message
-    result_message = f"Stock performance metrics for {stock_name}:\n"
-    result_message += f"Annualized Return: {portfolio_metrics.loc['Annualized Return']:.2%}\n"
-    result_message += f"Cumulative Returns: {portfolio_metrics.loc['Cumulative Returns']:.2%}\n"
-    result_message += f"Annual Volatility: {portfolio_metrics.loc['Annual Volatility']:.2%}\n"
-    result_message += f"Sharpe Ratio: {portfolio_metrics.loc['Sharpe Ratio']:.2f}\n"
-    result_message += f"Sortino Ratio: {portfolio_metrics.loc['Sortino Ratio']:.2f}"
+def format_response_body(stock_name, portfolio_metrics):
+    """
+    Format the response body as a JSON.
+    """
+    return {
+        "stock_name": stock_name,
+        "portfolio_metrics": portfolio_metrics.to_dict(orient='columns')
+    }
 
-    # Return the formatted result
+def create_successful_response(intent_request, response_body):
+    """
+    Create a successful response with JSON content.
+    """
+    return close(
+        intent_request["sessionAttributes"],
+        "Fulfilled",
+        {
+            "statusCode": 200,
+            "body": json.dumps(response_body)
+        },
+    )
+
+def create_error_response(intent_request, error_message):
+    """
+    Create an error response with plain text content.
+    """
     return close(
         intent_request["sessionAttributes"],
         "Fulfilled",
         {
             "contentType": "PlainText",
-            "content": result_message,
+            "content": error_message,
         },
     )
 
-# def get_stock_performance(intent_request):
-#      # Gets slots' values
-#     stock_name = get_slots(intent_request)["stock_name"]
-    
-#     # Return a message with the result (for now, a simple message is returned)
-#     return close(
-#         intent_request["sessionAttributes"],
-#         "Fulfilled",
-#         {
-#             "contentType": "PlainText",
-#             "content": "get_stock_performance! (Stock Performance Logic to be implemented)",
-#         },
-#     )
     
 def get_news_updates(intent_request):
     # Gets slots' values
-    news_location = get_slots(intent_request)["news_location"]
-    news_source = get_slots(intent_request)["news_source"]
-    news_topic = get_slots(intent_request)["news_topic"]
-    time_frame = get_slots(intent_request)["time_frame"]
-
-    # Your logic for retrieving news updates based on the provided slots can be added here
-
-    # Return a message with the result (for now, a simple message is returned)
-    return close(
-        intent_request["sessionAttributes"],
-        "Fulfilled",
-        {
-            "contentType": "PlainText",
-            "content": f"Fetching news updates for {news_topic} in {news_location} from {news_source} {time_frame}. (News Updates Logic to be implemented)",
-        },
-    )
+    ticker = get_slots(intent_request)["stock_ticker"]
     
+    # Logic for retrieving news updates based on the provided slots can be added here
+    try:
+        stock = yf.Ticker(ticker)
+
+        # Return a message with the result (for now, a simple message is returned)
+        return close(
+            intent_request["sessionAttributes"],
+            "Fulfilled",
+            {
+                "contentType": "PlainText",
+                "content": f"Fetching news updates for {ticker}: {stock.news}",
+            },
+        )
+    
+    except Exception as e:
+        # Handle errors, such as invalid stock symbol or network issues
+        return close(
+            intent_request["sessionAttributes"],
+            "Fulfilled",
+            {
+                "contentType": "PlainText",
+                "content": f"An error occurred while fetching stock news: {str(e)}",
+            },
+        )
+        
+    except Exception as ve:
+        # Handle errors, such as invalid stock symbol or network issues
+        return close(
+            intent_request["sessionAttributes"],
+            "Fulfilled",
+            {
+                "contentType": "PlainText",
+                "content":  f"ValueError:{str(ve)}",
+            },
+        )    
+        
 def get_investment_recommendation(intent_request):
     # Extracting slot values from the intent request
     income_objective = intent_request["currentIntent"]["slots"]["income_objective"]
@@ -244,7 +272,7 @@ def get_investment_recommendation(intent_request):
             "contentType": "PlainText",
             "content": f"Here is your investment recommendation: {recommendation}",
         },
-    )
+    )        
 
 # Function to generate investment recommendation based on slots
 def generate_investment_recommendation(income_objective=None, investment_amount=None, investment_horizon=None, risk_tolerance=None, sector_preference=None):
