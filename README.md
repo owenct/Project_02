@@ -83,3 +83,4 @@ Amazon Lex is a service that facilitates the creation of conversational interfac
 - Engage with the chatbot on the website to obtain information about individual stocks.
 
 This integration provides a seamless conversational experience on the website, allowing users to inquire about stock details using natural language. The combination of Amazon Lex, Lambda functions, and S3 hosting offers a scalable solution for building interactive and intelligent chatbot applications.
+
