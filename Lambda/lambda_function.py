@@ -240,18 +240,7 @@ def get_news_updates(intent_request):
                 "contentType": "PlainText",
                 "content": f"An error occurred while fetching stock news: {str(e)}",
             },
-        )
-        
-    except Exception as ve:
-        # Handle errors, such as invalid stock symbol or network issues
-        return close(
-            intent_request["sessionAttributes"],
-            "Fulfilled",
-            {
-                "contentType": "PlainText",
-                "content":  f"ValueError:{str(ve)}",
-            },
-        )    
+        )   
         
 def get_investment_recommendation(intent_request):
     # Extracting slot values from the intent request
@@ -287,7 +276,36 @@ def generate_investment_recommendation(income_objective=None, investment_amount=
         ]
         selected_recommendation = random.choice(recommendations)
         return f"Considering your preferences - Income Objective: {income_objective}, Investment Amount: {investment_amount}, Investment Horizon: {investment_horizon}, Risk Tolerance: {risk_tolerance}, Sector Preference: {sector_preference} - here is a specific recommendation - {selected_recommendation}"
-   
+
+def get_stock_eps(intent_request):
+    # Gets slots' values
+    ticker = get_slots(intent_request)["eps_stock_ticker"]
+    
+    # Logic for retrieving news updates based on the provided slots can be added here
+    try:
+        stock = yf.Ticker(ticker)
+
+        # Return a message with the result (for now, a simple message is returned)
+        return close(
+            intent_request["sessionAttributes"],
+            "Fulfilled",
+            {
+                "contentType": "PlainText",
+                "content": f"Earning for share for {ticker} in the last 4 years: {stock.income_stmt.loc['Basic EPS'].to_string()} and EBITDA in the last 4 years: {stock.income_stmt.loc['Normalized EBITDA'].to_string()}",
+            },
+        )
+    
+    except Exception as e:
+        # Handle errors, such as invalid stock symbol or network issues
+        return close(
+            intent_request["sessionAttributes"],
+            "Fulfilled",
+            {
+                "contentType": "PlainText",
+                "content": f"An error occurred while fetching stock news: {str(e)}",
+            },
+        )   
+
 ### Intents Dispatcher ###
 def dispatch(intent_request):
     """
@@ -307,7 +325,9 @@ def dispatch(intent_request):
     elif intent_name == "NewsUpdates":
         return get_news_updates(intent_request) 
     elif intent_name == "GetInvestmentRecommendation":
-        return get_investment_recommendation(intent_request)     
+        return get_investment_recommendation(intent_request)  
+    elif intent_name == "GetStockEPS":
+        return get_stock_eps(intent_request)    
         
     raise Exception("Intent with name " + intent_name + " not supported")
 
