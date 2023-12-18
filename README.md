@@ -14,8 +14,10 @@ The main features of this repository include:
 
 Raw market data is extracted via yfinance and was processed to extract relevant features, including moving averages, which are used as input for the trading strategy.
 * With the use of Backtesting package, short window = 20 days and long windows = 40 days is used to derive the technical indicators. This is picked based on the highest Equity Final yield - the larger amount, the better. 
-![n1n2_parameter](Images/backtesting_n1n2.png)
 
+<p align="center">
+  <img src="./Images/backtesting_n1n2.png"/>
+</p>
 
 * To assure we have consistent parameters used across all algorithms, they all share n1 = 20 and n2 = 40. 
 * Every algorithm yields a different buy-sell strategy, in order to evaluate which one works best - we would need to evaluate the performance metric. 
@@ -34,9 +36,10 @@ Raw market data is extracted via yfinance and was processed to extract relevant 
 ![Machine_learning_Period](Images/ML_Period.png)
 * In the classification report below, we see 50%+ accuracy f1-score for both training and testing data set.
 ![Classification_Report](Images/ML_Classification_Report_TA.png)
-After having fitted the ML-generated Signals, below is cumulative return graphs between actuals (Stationary Return) and Trading Algorithm (via SVM) returns. 
+* After having fitted the ML-generated Signals, below is cumulative return graphs between actuals (Stationary Return) and Trading Algorithm (via SVM) returns. 
 Cumulative Returns from the Trading Algorithm seemd to have outdone the Actual Returns.
-![ML_Returns](Images/ML_TA_Returns.png)
+  
+  ![ML_Returns](Images/ML_TA_Returns.png)
 
 ### Backtest / Performance Comparisons
 Based on the Risk-Reward Metric (aka Performance Metric) across the above strategies, SMA seems to yield the best results as it has the highest Cumulative Returns, Sharpe Raio and Sortino Ratio, as well as the lowest Annual Volatility.  However, Trading Algorithm's strategy yields the highest annualised return across the above strategies, yet with a tradeoff of 46% volatility which definitely is not suitable for risk-aversed investors. 
@@ -45,6 +48,12 @@ Based on the Risk-Reward Metric (aka Performance Metric) across the above strate
 ### Baseline Algorithm
 
 A baseline algorithm is implemented to generate buy/sell signals based on moving average crossovers.
+<p align="center">
+  <img src="./Images/Baseline_Alg.png"/>
+</p>
+<p align="center">
+  <img src="./Images/Baseline_Alg_plot.png"/>
+</p>
 
 ## Modeling
 
@@ -57,10 +66,22 @@ A Support Vector Machine classifier is trained using the moving average features
 ### Logistic Regression
 
 A Logistic Regression model is trained using the same features to predict buy/sell signals.
+<p align="center">
+  <img src="./Images/Logistic_Regression.png"/>
+</p>
+<p align="center">
+  <img src="./Images/Logistic_Regression_plot.png"/>
+</p>
 
 ### Multilayer Perceptron (MLP)
 
 A Multilayer Perceptron (MLP) neural network is implemented for predicting buy/sell signals. The model architecture and hyperparameters can be adjusted for further experimentation.
+<p align="center">
+  <img src="./Images/MLP.png"/>
+</p>
+<p align="center">
+  <img src="./Images/MLP_plot.png"/>
+</p>
 
 ## Strategy Evaluation
 
